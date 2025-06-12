@@ -20,24 +20,32 @@ var conf config
 
 type config struct {
 	Env         string `env:"ENV" env-required:"true"`
-	StoragePath string `env:"STORAGE_PATH" env-required:"true"`
+	StoragePath string `env:"POSTGRES_PATH" env-required:"true"`
 	LogOutput   string `env:"LOG_OUTPUT"`
 	LogLevel    string `env:"LOG_LEVEL"`
 	Redis       `env-prefix:"REDIS_"`
 	HttpServer  `env-prefix:"HTTP_"`
+	Clickhouse  `env-prefix:"CLICKHOUSE_"`
 }
 
 type HttpServer struct {
-	Address string `env:"ADDRESS" env-required:"true"`
-	Port    string `env:"API_PORT" env-required:"true"`
+	Host string `env:"HOST" env-required:"true"`
+	Port string `env:"API_PORT" env-required:"true"`
 }
 
 type Redis struct {
-	Address  string        `env:"HOST" env-required:"true"`
+	Host     string        `env:"HOST" env-required:"true"`
 	Port     string        `env:"PORT" env-required:"true"`
 	Password string        `env:"PASSWORD" env-required:"true"`
 	TTLKeys  time.Duration `env:"TTL" env-required:"true"`
 	NumberDB int           `env:"DB_NUMBER"` // default == 0
+}
+
+type Clickhouse struct {
+	Addr     string `env:"ADDRESS" env-required:"true"`
+	DB       string `env:"DB" env-required:"true"`
+	User     string `env:"USER" env-required:"true"`
+	Password string `env:"PASSWORD" env-required:"true"`
 }
 
 func MustLoad() {
