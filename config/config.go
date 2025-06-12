@@ -13,7 +13,7 @@ const (
 	ModeLocal      = "local"
 	ModeDev        = "dev"
 	ModeProd       = "prod"
-	defaultLogPath = "./pkg/logs/out.log"
+	defaultLogPath = "./logs/out.log"
 )
 
 var conf config
@@ -23,7 +23,7 @@ type config struct {
 	StoragePath string `env:"STORAGE_PATH" env-required:"true"`
 	LogOutput   string `env:"LOG_OUTPUT"`
 	LogLevel    string `env:"LOG_LEVEL"`
-	// Redis       `env-prefix:"REDIS_"`
+	Redis       `env-prefix:"REDIS_"`
 	HttpServer  `env-prefix:"HTTP_"`
 }
 
