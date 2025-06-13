@@ -10,13 +10,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type Redis struct {
+type RedisDB struct {
 	Client   *redis.Client
 	TTLKeys  time.Duration
 	numberDb int
 }
 
-func New(host, port, password string, ttlKeys time.Duration, numberDb int) (*Redis, error) {
+func New(host, port, password string, ttlKeys time.Duration, numberDb int) (*RedisDB, error) {
 	log.Println("Redis: connection to Redis started")
 
 	client := redis.NewClient(&redis.Options{
@@ -30,10 +30,10 @@ func New(host, port, password string, ttlKeys time.Duration, numberDb int) (*Red
 	}
 
 	log.Println("Redis: connect to Redis successfully")
-	return &Redis{Client: client, TTLKeys: ttlKeys, numberDb: numberDb}, nil
+	return &RedisDB{Client: client, TTLKeys: ttlKeys, numberDb: numberDb}, nil
 }
 
-func (r *Redis) Close() error {
+func (r *RedisDB) Close() error {
 	log.Println("Redis: stop started")
 
 	if r.Client == nil {

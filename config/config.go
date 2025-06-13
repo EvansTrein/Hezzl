@@ -26,6 +26,7 @@ type config struct {
 	Redis       `env-prefix:"REDIS_"`
 	HttpServer  `env-prefix:"HTTP_"`
 	Clickhouse  `env-prefix:"CLICKHOUSE_"`
+	Nats        `env-prefix:"NATS_"`
 }
 
 type HttpServer struct {
@@ -43,10 +44,15 @@ type Redis struct {
 
 type Clickhouse struct {
 	Host     string `env:"HOST" env-required:"true"`
-	Port     string `env:"HTTP_PORT" env-required:"true"`
+	Port     string `env:"TCP_PORT" env-required:"true"`
 	DB       string `env:"DB" env-required:"true"`
 	User     string `env:"USER" env-required:"true"`
 	Password string `env:"PASSWORD" env-required:"true"`
+}
+
+type Nats struct {
+	Host string `env:"HOST" env-required:"true"`
+	Port string `env:"PORT" env-required:"true"`
 }
 
 func MustLoad() {

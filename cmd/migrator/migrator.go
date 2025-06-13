@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -21,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if mode == "" || pathDB == "" || fileMigrationPath == "" {
-		panic("the path of the file with migrations or mode migration or the path for database creation is not specified")
+		log.Fatal("the path of the file with migrations or mode migration or the path for database creation is not specified")
 	}
 
 	migrateDb, err := migrate.New("file://"+fileMigrationPath, pathDB)

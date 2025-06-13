@@ -1,7 +1,6 @@
 package clickhouse
 
 import (
-	"crypto/tls"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -11,11 +10,11 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 )
 
-type Clickhouse struct {
+type ClickhouseDB struct {
 	DB *sql.DB
 }
 
-func New(host, port, dbName, userName, password string) (*Clickhouse, error) {
+func New(host, port, dbName, userName, password string) (*ClickhouseDB, error) {
 	log.Println("database: connection to ClickHouse started")
 
 	db := clickhouse.OpenDB(&clickhouse.Options{
@@ -24,9 +23,6 @@ func New(host, port, dbName, userName, password string) (*Clickhouse, error) {
 			Database: dbName,
 			Username: userName,
 			Password: password,
-		},
-		TLS: &tls.Config{
-			InsecureSkipVerify: true,
 		},
 		Settings: clickhouse.Settings{
 			"max_execution_time": 60,
@@ -49,17 +45,20 @@ func New(host, port, dbName, userName, password string) (*Clickhouse, error) {
 	}
 
 	log.Println("database: connect to ClickHouse successfully")
-	return &Clickhouse{DB: db}, nil
+	return &ClickhouseDB{DB: db}, nil
 }
 
-func (c *Clickhouse) Close() error {
+func (c *ClickhouseDB) Close() error {
 	log.Println("database: ClickHouse stop started")
 
 	if c.DB == nil {
 		return errors.New("database connection is already closed")
 	}
 
-	c.DB.Close()
+	if err := c.DB.Close(); err != nil {
+		return fmt.Errorf("failed to close ClickHouse connection: %w", err)
+	}
+
 	c.DB = nil
 
 	log.Println("database: ClickHouse stop successful")

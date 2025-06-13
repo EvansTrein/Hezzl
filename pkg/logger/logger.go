@@ -158,7 +158,7 @@ func InitLog(c LogConfig) {
 		}))
 	case "dev":
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level:     level, 
+			Level:     level,
 			AddSource: true,
 		}))
 	case "prod":
