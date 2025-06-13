@@ -82,7 +82,7 @@ func New() *App {
 
 func (a *App) Start() error {
 	a.logger.Info("app: successfully started", "port", config.GetConfig().HttpServer.Port)
-	if err := a.http.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	if err := a.http.ListenAndServe(); err != nil {
 		return err
 	}
 
