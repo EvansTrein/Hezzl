@@ -15,11 +15,11 @@ type Clickhouse struct {
 	DB *sql.DB
 }
 
-func New(addr, dbName, userName, password string) (*Clickhouse, error) {
+func New(host, port, dbName, userName, password string) (*Clickhouse, error) {
 	log.Println("database: connection to ClickHouse started")
 
 	db := clickhouse.OpenDB(&clickhouse.Options{
-		Addr: []string{addr},
+		Addr: []string{fmt.Sprintf("%s:%s", host, port)},
 		Auth: clickhouse.Auth{
 			Database: dbName,
 			Username: userName,

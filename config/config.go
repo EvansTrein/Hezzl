@@ -29,7 +29,7 @@ type config struct {
 }
 
 type HttpServer struct {
-	Host string `env:"HOST" env-required:"true"`
+	Host string `env:"API_HOST" env-required:"true"`
 	Port string `env:"API_PORT" env-required:"true"`
 }
 
@@ -42,7 +42,8 @@ type Redis struct {
 }
 
 type Clickhouse struct {
-	Addr     string `env:"ADDRESS" env-required:"true"`
+	Host     string `env:"HOST" env-required:"true"`
+	Port     string `env:"HTTP_PORT" env-required:"true"`
 	DB       string `env:"DB" env-required:"true"`
 	User     string `env:"USER" env-required:"true"`
 	Password string `env:"PASSWORD" env-required:"true"`

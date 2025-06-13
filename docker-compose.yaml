@@ -1,0 +1,74 @@
+# docker compose --env-file local.env up --build -d
+
+services:
+  postgres:
+    container_name: hezzl_postgres
+    image: postgres:17.5-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    command: >
+      postgres 
+      -p ${POSTGRES_PORT}
+    volumes:
+      - postgres_vol:/data
+    networks:
+      - services_net
+  
+  redis: 
+    container_name: hezzl_redis
+    image: redis:7.4.2-alpine
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    command: >
+      redis-server
+      --port ${REDIS_PORT}
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory ${REDIS_MAXMEMORY}
+    volumes:
+      - redis_vol:/data
+    networks:
+      - services_net
+  
+  clickhouse:
+    container_name: hezzl_clickhouse
+    image: clickhouse:25.5
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT}:8123"
+      - "${CLICKHOUSE_TCP_PORT}:9000" 
+    environment:
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DB=${CLICKHOUSE_DB}
+    volumes:
+      - clickhouse_vol:/data
+    networks:
+      - services_net
+
+  nats:
+    container_name: hezzl_nats
+    image: nats:2.11-alpine
+    ports:
+      - ${NATS_PORT}:${NATS_PORT}
+      - ${NATS_PORT_UI}:${NATS_PORT_UI}
+    environment:
+      - NATS_PORT=${NATS_PORT}
+      - NATS_PORT_UI=${NATS_PORT_UI}
+      - NATS_HOST=${NATS_HOST}
+    command: >
+      nats-server
+      --port ${NATS_PORT}
+      --http_port ${NATS_PORT_UI}
+    networks:
+      - services_net
+
+volumes:
+  postgres_vol: {}
+  redis_vol: {}
+  clickhouse_vol: {}
+
+networks:
+  services_net:
+    driver: bridge
