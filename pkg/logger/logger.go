@@ -108,6 +108,7 @@ func (h *CustomHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		handler: h.handler.WithAttrs(attrs),
 		output:  h.output,
 		attrs:   attrs,
+		mu:      h.mu,
 	}
 }
 
@@ -115,6 +116,7 @@ func (h *CustomHandler) WithGroup(name string) slog.Handler {
 	return &CustomHandler{
 		handler: h.handler.WithGroup(name),
 		output:  h.output,
+		mu:      h.mu,
 	}
 }
 

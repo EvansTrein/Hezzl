@@ -13,5 +13,6 @@ func NewApiError(msg string) apiError {
 }
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrValidate  = errors.New("data validate error")
+	ErrQueryParam = errors.New("invalid query parameters")
 )

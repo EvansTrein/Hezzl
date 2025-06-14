@@ -1,15 +1,32 @@
 package app
 
-import "net/http"
+import (
+	"hezzl/internal/controller"
+	"hezzl/pkg/logger"
+	"hezzl/pkg/middleware"
+	"net/http"
+)
 
-func InitRouters() *http.ServeMux {
+type activeHandlers struct {
+	*controller.Goods
+}
+
+type activeHandlersDeps struct {
+	*controller.Goods
+}
+
+func NewActiveHandlers(deps *activeHandlersDeps) *activeHandlers {
+	return &activeHandlers{
+		Goods: deps.Goods,
+	}
+}
+
+func (h *activeHandlers) InitRouters() *http.ServeMux {
 	engine := &http.ServeMux{}
 
-	engine.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello world"))
-	})
+	engine.Handle("POST /good/create", middleware.ChainMiddleware(
+		middleware.HandlerLog(logger.GetLogger()),
+	)(h.Goods.Create()))
 
 	return engine
 }

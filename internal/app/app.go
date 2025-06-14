@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"hezzl/config"
+	"hezzl/internal/controller"
+	"hezzl/internal/repository"
+	"hezzl/internal/service"
 	"hezzl/pkg/broker/nats"
 	"hezzl/pkg/db/clickhouse"
 	"hezzl/pkg/db/postgres"
@@ -63,11 +66,36 @@ func New() *App {
 		log.Fatal("failed connect to nats")
 	}
 
-	handler := InitRouters()
+	// Init repository
+	goodRepo := repository.NewGoodsRepo(&repository.GoodsRepoDeps{
+		Logger:     logger.GetLogger(),
+		PostgresDB: postgres,
+	})
 
+	// Init service
+	goodService := service.NewGoods(&service.GoodsDeps{
+		Logger:     logger.GetLogger(),
+		IGoodsRepo: goodRepo,
+	})
+
+	// Init controllers
+	baseController := controller.NewBaseController(&controller.BaseControllerDeps{
+		Logger: logger.GetLogger(),
+	})
+
+	goodsController := controller.NewGoods(&controller.GoodsDeps{
+		BaseController: baseController,
+		IGoodsService:  goodService,
+	})
+
+	handler := NewActiveHandlers(&activeHandlersDeps{
+		Goods: goodsController,
+	})
+
+	// Init server
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%s", conf.HttpServer.Host, conf.HttpServer.Port),
-		Handler: handler,
+		Handler: handler.InitRouters(),
 	}
 
 	return &App{
