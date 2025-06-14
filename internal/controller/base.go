@@ -7,6 +7,7 @@ import (
 	models "hezzl/internal/model"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 // Universal structure for sending responses
@@ -44,17 +45,28 @@ func (h *BaseController) SendJsonResp(w http.ResponseWriter, status int, data an
 	}
 }
 
+func (b *BaseController) GetIntQueryParam(r *http.Request, name string) (int, error) {
+	paramStr := r.URL.Query().Get(name)
+
+	paramInt, err := strconv.Atoi(paramStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return paramInt, nil
+}
+
 func (b *BaseController) SendJsonError(w http.ResponseWriter, mess string, err error) {
 	switch {
 	case errors.Is(err, models.ErrValidate):
-		b.Log.Error(mess, "error", err)
+		b.Log.Warn(mess, "error", err)
 		b.SendJsonResp(w, 400, &BaseControllerResponce{
 			Status:  http.StatusBadRequest,
 			Message: mess,
 			Error:   err.Error(),
 		})
 	case errors.Is(err, models.ErrQueryParam):
-		b.Log.Error(mess, "error", err)
+		b.Log.Warn(mess, "error", err)
 		b.SendJsonResp(w, 400, &BaseControllerResponce{
 			Status:  http.StatusBadRequest,
 			Message: mess,
@@ -71,7 +83,7 @@ func (b *BaseController) SendJsonError(w http.ResponseWriter, mess string, err e
 		b.Log.Error("internal server error", "error", err)
 		b.SendJsonResp(w, 500, &BaseControllerResponce{
 			Status:  http.StatusInternalServerError,
-			Message: "internal server error",
+			Message: mess,
 			Error:   err.Error(),
 		})
 	}

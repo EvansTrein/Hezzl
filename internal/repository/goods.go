@@ -29,3 +29,23 @@ func (r *goodsRepo) Create(ctx context.Context, data models.ProductCreateRequest
 
 	return product, nil
 }
+
+func (r *goodsRepo) Update(ctx context.Context, data models.ProductUpdateRequest) (*models.Product, error) {
+
+	return nil, nil
+}
+
+func (r *goodsRepo) Remove(ctx context.Context, id, projectId int) (*models.ProductRemoveResponce, error) {
+
+	return nil, nil
+}
+
+func (r *goodsRepo)List(ctx context.Context, offset, limit int) (*models.ProductListResponce, error) {
+
+	return nil, nil
+}
+
+func (r *goodsRepo) Reprioritizy(ctx context.Context, data models.ProductReprioritizyRequest) (*models.ProductReprioritizyResponce, error) {
+
+	return nil, nil
+}
