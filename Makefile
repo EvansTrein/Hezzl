@@ -1,16 +1,23 @@
 default: go-run
 .PHONY: go-run
 
-PATH_DB=postgres://evans:evans@localhost:8081/postgres?sslmode=disable
-FILE_MIGRATIONS =./migrations
-MIGRATION_MODE=up
+MIGRATION_MODE_UP=up
+
+PATH_DB_POSTGRES=postgres://evans:evans@localhost:8081/postgres?sslmode=disable
+FILE_MIGRATIONS_POSTGRES =./migrations/postgres
+
+PATH_DB_CLICKHOUSE=clickhouse://evans:evans@localhost:8083/logs
+FILE_MIGRATIONS_CLICKHOUSE =./migrations/clickhouse
 
 # Golang
 go-run:
 	go run cmd/main.go -config ./local.env
 
-go-migrate:	
-	go run cmd/migrator/migrator.go -mode $(MIGRATION_MODE) -storage-path $(PATH_DB) -migrations-path $(FILE_MIGRATIONS)
+go-migrate-postgres-up:	
+	go run cmd/migrator/migrator.go -mode $(MIGRATION_MODE_UP) -storage-path $(PATH_DB_POSTGRES) -migrations-path $(FILE_MIGRATIONS_POSTGRES)
+
+go-migrate-clickhouse-up:	
+	go run cmd/migrator/migrator.go -mode $(MIGRATION_MODE_UP) -storage-path $(PATH_DB_CLICKHOUSE) -migrations-path $(FILE_MIGRATIONS_CLICKHOUSE)
 
 go-fmt:
 	go fmt ./...
