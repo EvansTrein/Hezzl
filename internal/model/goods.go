@@ -1,4 +1,4 @@
-package models
+package model
 
 import "time"
 
@@ -33,7 +33,7 @@ type ProductRemoveResponce struct {
 type ProductListResponce struct {
 	Meta struct {
 		Total   int  `json:"total"`
-		Removed bool `json:"removed"`
+		Removed int `json:"removed"`
 		Limit   int  `json:"limit"`
 		Offset  int  `json:"offset"`
 	} `json:"meta"`

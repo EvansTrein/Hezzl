@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	models "hezzl/internal/model"
+	"hezzl/internal/model"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -58,19 +58,25 @@ func (b *BaseController) GetIntQueryParam(r *http.Request, name string) (int, er
 
 func (b *BaseController) SendJsonError(w http.ResponseWriter, mess string, err error) {
 	switch {
-	case errors.Is(err, models.ErrValidate):
+	case errors.Is(err, model.ErrValidate):
 		b.Log.Warn(mess, "error", err)
 		b.SendJsonResp(w, 400, &BaseControllerResponce{
 			Status:  http.StatusBadRequest,
 			Message: mess,
 			Error:   err.Error(),
 		})
-	case errors.Is(err, models.ErrQueryParam):
+	case errors.Is(err, model.ErrQueryParam):
 		b.Log.Warn(mess, "error", err)
 		b.SendJsonResp(w, 400, &BaseControllerResponce{
 			Status:  http.StatusBadRequest,
 			Message: mess,
 			Error:   err.Error(),
+		})
+	case errors.Is(err, model.ErrNotFound):
+		b.Log.Warn(mess, "error", err)
+		b.SendJsonResp(w, 404, &model.Custom404{
+			Message: "errors.common.notFound",
+			Code:    3,
 		})
 	case errors.Is(err, context.DeadlineExceeded):
 		b.Log.Error("request processing exceeded the allowed time limit", "error", err)
@@ -83,7 +89,7 @@ func (b *BaseController) SendJsonError(w http.ResponseWriter, mess string, err e
 		b.Log.Error("internal server error", "error", err)
 		b.SendJsonResp(w, 500, &BaseControllerResponce{
 			Status:  http.StatusInternalServerError,
-			Message: mess,
+			Message: "internal server error",
 			Error:   err.Error(),
 		})
 	}

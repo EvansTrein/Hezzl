@@ -3,17 +3,17 @@ package controller
 import (
 	"context"
 	"encoding/json"
-	models "hezzl/internal/model"
+	"hezzl/internal/model"
 	"hezzl/pkg/validate"
 	"net/http"
 )
 
 type IGoodsService interface {
-	Create(ctx context.Context, data models.ProductCreateRequest) (*models.Product, error)
-	Update(ctx context.Context, data models.ProductUpdateRequest) (*models.Product, error)
-	Remove(ctx context.Context, id, projectId int) (*models.ProductRemoveResponce, error)
-	List(ctx context.Context, offset, limit int) (*models.ProductListResponce, error)
-	Reprioritizy(ctx context.Context, data models.ProductReprioritizyRequest) (*models.ProductReprioritizyResponce, error)
+	Create(ctx context.Context, data model.ProductCreateRequest) (*model.Product, error)
+	Update(ctx context.Context, data model.ProductUpdateRequest) (*model.Product, error)
+	Remove(ctx context.Context, id, projectId int) (*model.ProductRemoveResponce, error)
+	List(ctx context.Context, offset, limit int) (*model.ProductListResponce, error)
+	Reprioritizy(ctx context.Context, data model.ProductReprioritizyRequest) (*model.ProductReprioritizyResponce, error)
 }
 
 type Goods struct {
@@ -37,11 +37,11 @@ func (g *Goods) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		projectId, err := g.base.GetIntQueryParam(r, "projectId")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
-		reqData := models.ProductCreateRequest{
+		reqData := model.ProductCreateRequest{
 			ProjectID: projectId,
 		}
 
@@ -51,7 +51,7 @@ func (g *Goods) Create() http.HandlerFunc {
 		}
 
 		if err := validate.IsValid(reqData); err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrValidate)
+			g.base.SendJsonError(w, err.Error(), model.ErrValidate)
 			return
 		}
 
@@ -69,17 +69,17 @@ func (g *Goods) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := g.base.GetIntQueryParam(r, "id")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
 		projectId, err := g.base.GetIntQueryParam(r, "projectId")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
-		reqData := models.ProductUpdateRequest{
+		reqData := model.ProductUpdateRequest{
 			ID:        id,
 			ProjectID: projectId,
 		}
@@ -90,7 +90,7 @@ func (g *Goods) Update() http.HandlerFunc {
 		}
 
 		if err := validate.IsValid(reqData); err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrValidate)
+			g.base.SendJsonError(w, err.Error(), model.ErrValidate)
 			return
 		}
 
@@ -108,13 +108,13 @@ func (g *Goods) Remove() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := g.base.GetIntQueryParam(r, "id")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
 		projectId, err := g.base.GetIntQueryParam(r, "projectId")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
@@ -130,16 +130,33 @@ func (g *Goods) Remove() http.HandlerFunc {
 
 func (g *Goods) List() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		offset, err := g.base.GetIntQueryParam(r, "offset")
-		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
-			return
+		offsetStr := r.URL.Query().Get("offset")
+		limitStr := r.URL.Query().Get("limit")
+
+		var offset, limit int
+
+		switch offsetStr {
+		case "":
+			offset = 1
+		default:
+			var err error
+			offset, err = g.base.GetIntQueryParam(r, "offset")
+			if err != nil {
+				g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
+				return
+			}
 		}
 
-		limit, err := g.base.GetIntQueryParam(r, "limit")
-		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
-			return
+		switch limitStr {
+		case "":
+			limit = 10
+		default:
+			var err error
+			limit, err = g.base.GetIntQueryParam(r, "limit")
+			if err != nil {
+				g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
+				return
+			}
 		}
 
 		resp, err := g.service.List(r.Context(), offset, limit)
@@ -156,17 +173,17 @@ func (g *Goods) Reprioritizy() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := g.base.GetIntQueryParam(r, "id")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
 		projectId, err := g.base.GetIntQueryParam(r, "projectId")
 		if err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrQueryParam)
+			g.base.SendJsonError(w, err.Error(), model.ErrQueryParam)
 			return
 		}
 
-		reqData := models.ProductReprioritizyRequest{
+		reqData := model.ProductReprioritizyRequest{
 			ID:        id,
 			ProjectID: projectId,
 		}
@@ -177,7 +194,7 @@ func (g *Goods) Reprioritizy() http.HandlerFunc {
 		}
 
 		if err := validate.IsValid(reqData); err != nil {
-			g.base.SendJsonError(w, err.Error(), models.ErrValidate)
+			g.base.SendJsonError(w, err.Error(), model.ErrValidate)
 			return
 		}
 
