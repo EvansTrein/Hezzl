@@ -42,8 +42,14 @@ func (e *logging) SendToBroker(data *model.Product) {
 		return
 	}
 
-	if err := e.Broker.Conn.Publish(e.Broker.NameMess, mess); err != nil {
-		log.Error("failed to publish message to nats", "error", err)
+	// if err := e.Broker.Conn.Publish(e.Broker.NameMess, mess); err != nil {
+	// 	log.Error("failed to publish message to nats", "error", err)
+	// 	return
+	// }
+
+	_, err = e.Broker.Js.Publish(e.Broker.NameMess, mess)
+	if err != nil {
+		log.Error("failed to publish message to jetstream", "error", err)
 		return
 	}
 

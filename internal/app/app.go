@@ -90,6 +90,10 @@ func New() *App {
 		ILogsRepo:  logsRepo,
 	})
 
+	if err := eventLog.Broker.CreateStream(conf.Nats.NameMess, conf.Nats.NameMess); err != nil {
+		log.Fatal(err)
+	}
+
 	// Init service
 	goodService := service.NewGoods(&service.GoodsDeps{
 		Logger:        logger.GetLogger(),

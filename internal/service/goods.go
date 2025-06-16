@@ -109,7 +109,7 @@ func (s *Goods) List(ctx context.Context, offset, limit int) (*model.ProductList
 		return cacheResult, nil
 	}
 
-	result, err := s.repo.List(ctx, offset-1, limit)
+	result, err := s.repo.List(ctx, offset, limit)
 	if err != nil {
 		return nil, err
 	}

@@ -15,4 +15,4 @@ WORKDIR /app
 COPY --from=builder /app/events .
 COPY --from=builder /app/example.env .
 
-CMD ["sh", "-c", "sleep 3 && ./events -config ./example.env"]
+CMD ["sh", "-c", "sleep 5 && ./events -config ./example.env"]

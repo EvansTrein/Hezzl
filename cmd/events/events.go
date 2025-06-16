@@ -12,8 +12,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
-	n "github.com/nats-io/nats.go"
 )
 
 func main() {
@@ -56,15 +54,38 @@ func main() {
 		ILogsRepo:  logsRepo,
 	})
 
-	go func() {
-		_, err = loggingEvent.Broker.Conn.Subscribe(nats.NameMess, func(m *n.Msg) {
-			loggingEvent.SendLogToDB(m.Data)
-		})
-		if err != nil {
-			chErr <- fmt.Errorf("failed to subscribe to NATS topic: %w", err)
-		}
+	consumer, err := loggingEvent.Broker.EnsureConsumer(
+		loggingEvent.Broker.NameMess,
+		loggingEvent.Broker.NameMess,
+		loggingEvent.Broker.NameMess,
+	)
+	if err != nil {
+		chErr <- fmt.Errorf("failed to create pull subscriber: %w", err)
+		return
+	}
 
-		myLog.Info("subscribe successfully")
+	myLog.Info("subscribe successfully")
+
+	go func() {
+		for {
+			msgs, err := consumer.Fetch(5)
+			if err != nil {
+				myLog.Error("failed to fetch messages", "error", err)
+				continue
+			}
+
+			for msg := range msgs.Messages() {
+				if err := msgs.Error(); err != nil {
+					myLog.Warn("message read error", "error", err)
+					continue
+				}
+
+				loggingEvent.SendLogToDB(msg.Data())
+				if err := msg.Ack(); err != nil {
+					myLog.Error("failed to ack message", "error", err)
+				}
+			}
+		}
 	}()
 
 	stop := make(chan os.Signal, 3)

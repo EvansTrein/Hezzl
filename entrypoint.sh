@@ -2,7 +2,7 @@
 
 set -e
 
-sleep 3
+sleep 5
 
 echo "Running PostgreSQL migrations..."
 ./migrator -mode up \

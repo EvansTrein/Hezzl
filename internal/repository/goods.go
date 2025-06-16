@@ -191,10 +191,10 @@ func (r *goodsRepo) List(ctx context.Context, offset, limit int) (*model.Product
 			(SELECT COUNT(*) FROM %s) AS total,
 			(SELECT COUNT(*) FROM filtered_goods WHERE removed = true) AS removed,
 			$1 AS "limit",
-			$2 AS "offset";
+			$2 + 1 AS "offset";
     `, tableName, tableName)
 
-	if err := r.DB.QueryRow(ctx, metaQuery, limit, offset).
+	if err := r.DB.QueryRow(ctx, metaQuery, limit, offset-1).
 		Scan(
 			&result.Meta.Total,
 			&result.Meta.Removed,
@@ -212,7 +212,7 @@ func (r *goodsRepo) List(ctx context.Context, offset, limit int) (*model.Product
 			LIMIT $1 OFFSET $2;
 		`, tableName)
 
-	rows, err := r.DB.Query(ctx, listQuery, limit, offset)
+	rows, err := r.DB.Query(ctx, listQuery, limit, offset-1)
 	if err != nil {
 		log.Error("failed to get goods list", "error", err)
 		return nil, err
