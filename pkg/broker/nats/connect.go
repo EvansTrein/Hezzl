@@ -9,10 +9,11 @@ import (
 )
 
 type NatsBroker struct {
-	Conn *nats.Conn
+	Conn     *nats.Conn
+	NameMess string
 }
 
-func New(host, port string) (*NatsBroker, error) {
+func New(host, port, nameMess string) (*NatsBroker, error) {
 	log.Println("broker: connection to Nats started")
 
 	nc, err := nats.Connect(fmt.Sprintf("%s:%s", host, port))
@@ -21,7 +22,7 @@ func New(host, port string) (*NatsBroker, error) {
 	}
 
 	log.Println("broker: connect to Nats successfully")
-	return &NatsBroker{Conn: nc}, nil
+	return &NatsBroker{Conn: nc, NameMess: nameMess}, nil
 }
 
 func (b *NatsBroker) Close() error {

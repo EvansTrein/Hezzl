@@ -212,7 +212,7 @@ func (r *goodsRepo) List(ctx context.Context, offset, limit int) (*model.Product
 			LIMIT $1 OFFSET $2;
 		`, tableName)
 
-	rows, err := r.DB.Query(ctx, listQuery, limit, offset)
+	rows, err := r.DB.Query(ctx, listQuery, limit, offset-1)
 	if err != nil {
 		log.Error("failed to get goods list", "error", err)
 		return nil, err

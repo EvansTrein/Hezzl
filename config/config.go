@@ -51,8 +51,9 @@ type Clickhouse struct {
 }
 
 type Nats struct {
-	Host string `env:"HOST" env-required:"true"`
-	Port string `env:"PORT" env-required:"true"`
+	Host     string `env:"HOST" env-required:"true"`
+	Port     string `env:"PORT" env-required:"true"`
+	NameMess string `env:"NAME_MESSAGES" env-required:"true"`
 }
 
 func MustLoad() {

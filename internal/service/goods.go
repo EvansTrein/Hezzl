@@ -14,20 +14,36 @@ type IGoodsRepo interface {
 	Reprioritizy(ctx context.Context, data model.ProductReprioritizyRequest) (*model.ProductReprioritizyResponce, error)
 }
 
+type ICacheRepo interface {
+	AddGoodsList(data *model.ProductListResponce)
+	GetGoodsList(offset, limit int) *model.ProductListResponce
+	InvalidateGoods()
+}
+
+type IEventManager interface {
+	SendToBroker(data *model.Product)
+}
+
 type Goods struct {
-	log  *slog.Logger
-	repo IGoodsRepo
+	log   *slog.Logger
+	repo  IGoodsRepo
+	cache ICacheRepo
+	event IEventManager
 }
 
 type GoodsDeps struct {
 	*slog.Logger
 	IGoodsRepo
+	ICacheRepo
+	IEventManager
 }
 
 func NewGoods(deps *GoodsDeps) *Goods {
 	return &Goods{
-		log:  deps.Logger,
-		repo: deps.IGoodsRepo,
+		log:   deps.Logger,
+		repo:  deps.IGoodsRepo,
+		cache: deps.ICacheRepo,
+		event: deps.IEventManager,
 	}
 }
 
@@ -55,6 +71,9 @@ func (s *Goods) Update(ctx context.Context, data model.ProductUpdateRequest) (*m
 		return nil, err
 	}
 
+	go s.cache.InvalidateGoods()
+	go s.event.SendToBroker(result)
+
 	log.Info("successfully updated")
 	return result, nil
 }
@@ -69,6 +88,13 @@ func (s *Goods) Remove(ctx context.Context, id, projectId int) (*model.ProductRe
 		return nil, err
 	}
 
+	go s.cache.InvalidateGoods()
+	go s.event.SendToBroker(&model.Product{
+		ID:        result.ID,
+		ProjectID: result.ProjectID,
+		Removed:   result.Removed,
+	})
+
 	log.Info("successfully removed")
 	return result, nil
 }
@@ -78,10 +104,17 @@ func (s *Goods) List(ctx context.Context, offset, limit int) (*model.ProductList
 	log := s.log.With(slog.String("operation", op))
 	log.Debug("Call func List", "offset", offset, "limit", limit)
 
+	if cacheResult := s.cache.GetGoodsList(offset, limit); cacheResult != nil {
+		log.Debug("data was retrieved from the cache")
+		return cacheResult, nil
+	}
+
 	result, err := s.repo.List(ctx, offset, limit)
 	if err != nil {
 		return nil, err
 	}
+
+	go s.cache.AddGoodsList(result)
 
 	log.Info("successful search")
 	return result, nil
@@ -96,6 +129,16 @@ func (s *Goods) Reprioritizy(ctx context.Context, data model.ProductReprioritizy
 	if err != nil {
 		return nil, err
 	}
+
+	go s.cache.InvalidateGoods()
+	go func() {
+		for _, el := range result.Priorities {
+			s.event.SendToBroker(&model.Product{
+				ID:       el.ID,
+				Priority: el.Priority,
+			})
+		}
+	}()
 
 	log.Info("successfully reprioritized")
 	return result, nil

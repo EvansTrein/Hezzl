@@ -13,6 +13,9 @@ FILE_MIGRATIONS_CLICKHOUSE =./migrations/clickhouse
 go-run:
 	go run cmd/main.go -config ./local.env
 
+go-run-nats:
+	go run cmd/events/events.go -config ./local.env
+
 go-migrate-postgres-up:	
 	go run cmd/migrator/migrator.go -mode $(MIGRATION_MODE_UP) -storage-path $(PATH_DB_POSTGRES) -migrations-path $(FILE_MIGRATIONS_POSTGRES)
 

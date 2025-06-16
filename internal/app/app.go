@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hezzl/config"
 	"hezzl/internal/controller"
+	"hezzl/internal/event"
 	"hezzl/internal/repository"
 	"hezzl/internal/service"
 	"hezzl/pkg/broker/nats"
@@ -61,7 +62,7 @@ func New() *App {
 		log.Fatal("failed connect to redis")
 	}
 
-	nats, err := nats.New(conf.Nats.Host, conf.Nats.Port)
+	nats, err := nats.New(conf.Nats.Host, conf.Nats.Port, conf.Nats.NameMess)
 	if err != nil {
 		log.Fatal("failed connect to nats")
 	}
@@ -72,10 +73,29 @@ func New() *App {
 		PostgresDB: postgres,
 	})
 
+	cacheRepo := repository.NewCacheRepo(&repository.CacheRepoDeps{
+		Logger:  logger.GetLogger(),
+		RedisDB: redis,
+	})
+
+	logsRepo := repository.NewLogsRepo(&repository.LogsRepoDeps{
+		Logger:       logger.GetLogger(),
+		ClickhouseDB: clickhouse,
+	})
+
+	// Init event
+	eventLog := event.NewLogging(&event.LoggingDeps{
+		Logger:     logger.GetLogger(),
+		NatsBroker: nats,
+		ILogsRepo:  logsRepo,
+	})
+
 	// Init service
 	goodService := service.NewGoods(&service.GoodsDeps{
-		Logger:     logger.GetLogger(),
-		IGoodsRepo: goodRepo,
+		Logger:        logger.GetLogger(),
+		IGoodsRepo:    goodRepo,
+		ICacheRepo:    cacheRepo,
+		IEventManager: eventLog,
 	})
 
 	// Init controllers

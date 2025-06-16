@@ -1,3 +1,4 @@
+# docker compose --env-file example.env up --build -d
 # docker compose --env-file local.env up --build -d
 
 services:
@@ -63,6 +64,29 @@ services:
       --http_port ${NATS_PORT_UI}
     networks:
       - services_net
+
+  # app:
+  #   container_name: hezzl_app
+  #   build: .
+  #   ports:
+  #     - ${HTTP_API_PORT}:${HTTP_API_PORT}
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #     - clickhouse
+  #     - nats
+  #   networks:
+  #     - services_net
+
+  # events:
+  #   container_name: hezzl_events
+  #   build:
+  #     context: .
+  #     dockerfile: cmd/events/Dockerfile
+  #   depends_on:
+  #     - app
+  #   networks:
+  #     - services_net
 
 volumes:
   postgres_vol: {}
