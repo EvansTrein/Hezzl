@@ -109,7 +109,7 @@ func (s *Goods) List(ctx context.Context, offset, limit int) (*model.ProductList
 		return cacheResult, nil
 	}
 
-	result, err := s.repo.List(ctx, offset, limit)
+	result, err := s.repo.List(ctx, offset-1, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +134,9 @@ func (s *Goods) Reprioritizy(ctx context.Context, data model.ProductReprioritizy
 	go func() {
 		for _, el := range result.Priorities {
 			s.event.SendToBroker(&model.Product{
-				ID:       el.ID,
-				Priority: el.Priority,
+				ID:        el.ID,
+				ProjectID: el.ProjectID,
+				Priority:  el.Priority,
 			})
 		}
 	}()

@@ -32,10 +32,10 @@ type ProductRemoveResponce struct {
 
 type ProductListResponce struct {
 	Meta struct {
-		Total   int  `json:"total"`
+		Total   int `json:"total"`
 		Removed int `json:"removed"`
-		Limit   int  `json:"limit"`
-		Offset  int  `json:"offset"`
+		Limit   int `json:"limit"`
+		Offset  int `json:"offset"`
 	} `json:"meta"`
 	Goods []Product `json:"goods"`
 }
@@ -48,7 +48,8 @@ type ProductReprioritizyRequest struct {
 
 type ProductReprioritizyResponce struct {
 	Priorities []struct {
-		ID       int `json:"id"`
-		Priority int `json:"priority"`
+		ID        int `json:"id"`
+		ProjectID int `json:"project_id"`
+		Priority  int `json:"priority"`
 	} `json:"priorities"`
 }

@@ -212,7 +212,7 @@ func (r *goodsRepo) List(ctx context.Context, offset, limit int) (*model.Product
 			LIMIT $1 OFFSET $2;
 		`, tableName)
 
-	rows, err := r.DB.Query(ctx, listQuery, limit, offset-1)
+	rows, err := r.DB.Query(ctx, listQuery, limit, offset)
 	if err != nil {
 		log.Error("failed to get goods list", "error", err)
 		return nil, err
@@ -255,23 +255,63 @@ func (r *goodsRepo) Reprioritizy(ctx context.Context, data model.ProductRepriori
 
 	var result model.ProductReprioritizyResponce
 
+	queryMaxPriority := fmt.Sprintf(`
+		SELECT MAX(priority)
+		FROM %s
+		WHERE project_id = $1
+    `, tableName)
+
+	var maxPriority int
+	err := r.DB.QueryRow(ctx, queryMaxPriority, data.ProjectID).Scan(&maxPriority)
+	if err != nil {
+		log.Error("failed to get max priority", "error", err)
+		return nil, err
+	}
+
+	if data.NewPriority > maxPriority {
+		log.Warn("new priority is higher than current max")
+		return nil, model.ErrMaxPriority
+	}
+
+	queryCurrentPriority := fmt.Sprintf(`
+        SELECT priority
+        FROM %s
+        WHERE id = $1 AND project_id = $2
+    `, tableName)
+
+    var currentPriority int
+    err = r.DB.QueryRow(ctx, queryCurrentPriority, data.ID, data.ProjectID).Scan(&currentPriority)
+    if err != nil {
+        log.Error("failed to get current priority", "error", err)
+        return nil, err
+    }
+
+	if currentPriority == data.NewPriority {
+		log.Warn("new priority, equal to current priority")
+		return nil, model.ErrCurrentPriority
+	}
+
 	query := fmt.Sprintf(`
-        WITH target AS (
-            SELECT priority FROM %s
-            WHERE id = $1 AND project_id = $2
-        ),
-        affected_goods AS (
-            UPDATE %s
-            SET priority = CASE
-                WHEN id = $1 THEN $3
-                WHEN priority >= $3 AND priority < (SELECT priority FROM target) THEN priority + 1
-            END
-            WHERE project_id = $2
-                AND (id = $1 OR (priority >= $3 AND priority < (SELECT priority FROM target)))
-            RETURNING id, priority
-        )
-        SELECT * FROM affected_goods;
-    `, tableName, tableName)
+		WITH target AS (
+			SELECT id, priority
+			FROM %s
+			WHERE id = $1 AND project_id = $2
+		),
+		new_priority_item AS (
+			SELECT id, priority
+			FROM %s
+			WHERE project_id = $2 AND priority = $3 AND id != (SELECT id FROM target)
+		)
+		UPDATE %s g
+		SET priority = CASE
+			WHEN g.id = (SELECT id FROM target) THEN (SELECT priority FROM new_priority_item)
+			WHEN g.id = (SELECT id FROM new_priority_item) THEN (SELECT priority FROM target)
+			ELSE g.priority
+		END
+		FROM target, new_priority_item
+		WHERE g.id IN (target.id, new_priority_item.id)
+		RETURNING g.id, g.project_id, g.priority
+    `, tableName, tableName, tableName)
 
 	rows, err := r.DB.Query(ctx, query, data.ID, data.ProjectID, data.NewPriority)
 	if err != nil {
@@ -283,10 +323,11 @@ func (r *goodsRepo) Reprioritizy(ctx context.Context, data model.ProductRepriori
 	found := false
 	for rows.Next() {
 		var item struct {
-			ID       int `json:"id"`
-			Priority int `json:"priority"`
+			ID        int `json:"id"`
+			ProjectID int `json:"project_id"`
+			Priority  int `json:"priority"`
 		}
-		if err := rows.Scan(&item.ID, &item.Priority); err != nil {
+		if err := rows.Scan(&item.ID, &item.ProjectID, &item.Priority); err != nil {
 			log.Error("failed to scan row", "error", err)
 			return nil, err
 		}

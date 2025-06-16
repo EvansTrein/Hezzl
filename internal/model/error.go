@@ -19,7 +19,9 @@ type Custom404 struct {
 }
 
 var (
-	ErrValidate   = errors.New("data validate error")
-	ErrQueryParam = errors.New("invalid query parameters")
-	ErrNotFound   = errors.New("not found")
+	ErrValidate        = errors.New("data validate error")
+	ErrQueryParam      = errors.New("invalid query parameters")
+	ErrNotFound        = errors.New("not found")
+	ErrMaxPriority     = errors.New("new priority cannot be higher than the current maximum priority")
+	ErrCurrentPriority = errors.New("new priority must be different from the old")
 )

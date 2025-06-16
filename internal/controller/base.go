@@ -58,6 +58,20 @@ func (b *BaseController) GetIntQueryParam(r *http.Request, name string) (int, er
 
 func (b *BaseController) SendJsonError(w http.ResponseWriter, mess string, err error) {
 	switch {
+	case errors.Is(err, model.ErrCurrentPriority):
+		b.Log.Warn(mess, "error", err)
+		b.SendJsonResp(w, 400, &BaseControllerResponce{
+			Status:  http.StatusBadRequest,
+			Message: mess,
+			Error:   err.Error(),
+		})
+	case errors.Is(err, model.ErrMaxPriority):
+		b.Log.Warn(mess, "error", err)
+		b.SendJsonResp(w, 400, &BaseControllerResponce{
+			Status:  http.StatusBadRequest,
+			Message: mess,
+			Error:   err.Error(),
+		})
 	case errors.Is(err, model.ErrValidate):
 		b.Log.Warn(mess, "error", err)
 		b.SendJsonResp(w, 400, &BaseControllerResponce{
